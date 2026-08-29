@@ -8,8 +8,9 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 - Add / delete items (name, spec, qty, optional comment) directly in an always-editable table — no separate edit/save mode
 - Live search box filters the list by item name, spec, or comment as you type
 - Changes auto-save as you type (debounced ~500ms), with a small "Saving…/Saved" indicator
-- A single floating "+" button (bottom-right) expands into a menu for Add, Share, Restore, and Clear
-- **Restore** — reverts to the original pre-loaded list at any time (asks for confirmation first); restored quantities are left blank for you to fill in
+- A single floating "+" button (bottom-right) expands into a menu for Add, Share, Set Default, Restore, and Clear
+- **Set Default** — optionally saves your current list (including any edits, additions, or deletions) as your new default, so **Restore** brings back that exact version instead of the original pre-loaded list from then on
+- **Restore** — reverts to your saved default if you've set one, otherwise the original pre-loaded list (asks for confirmation first)
 - Data persists in the browser's `localStorage` until you explicitly hit **Clear**
 - **Share** — opens the browser print dialog with a plain, content-only document (no app UI); choose "Save as PDF" as the destination to get a shareable PDF, pre-named from the list title and current date/time. Note: some browsers (notably iOS Safari's share sheet) don't honor the suggested filename — you may need to rename it manually there. Items with no quantity set (blank or 0) are left out of the shared document, since only what actually needs picking up is useful there
 - Editable, persisted list title, plus generated-date and last-updated timestamps

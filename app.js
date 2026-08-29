@@ -4,6 +4,7 @@
   var STORAGE_KEY = "itemTracker.items.v2";
   var TITLE_KEY = "itemTracker.title.v1";
   var LAST_UPDATED_KEY = "itemTracker.lastUpdated.v1";
+  var CUSTOM_DEFAULT_KEY = "itemTracker.customDefault.v1";
   var DEFAULT_TITLE = "Items List";
   var SAVE_DEBOUNCE_MS = 500;
 
@@ -72,19 +73,40 @@
 
   // ---------- persistence ----------
 
-  function defaultItems() {
+  function factoryDefaultItems() {
     return DEFAULT_ITEMS_DATA.map(function (row) {
       return { id: uid(), name: row[0], spec: row[1], qty: "", comment: "" };
+    });
+  }
+
+  // "Set Default" lets the user save their current list as a custom
+  // baseline; once saved, "Restore" brings back that snapshot instead of
+  // the factory list. Falls back to the factory list until one is saved.
+  function loadCustomDefault() {
+    try {
+      var raw = localStorage.getItem(CUSTOM_DEFAULT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.error("Failed to load custom default from localStorage", e);
+      return null;
+    }
+  }
+
+  function getDefaultItems() {
+    var custom = loadCustomDefault();
+    if (!custom || !custom.length) return factoryDefaultItems();
+    return custom.map(function (item) {
+      return { id: uid(), name: item.name || "", spec: item.spec || "", qty: item.qty || "", comment: item.comment || "" };
     });
   }
 
   function loadItems() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : defaultItems();
+      return raw ? JSON.parse(raw) : getDefaultItems();
     } catch (e) {
       console.error("Failed to load items from localStorage", e);
-      return defaultItems();
+      return getDefaultItems();
     }
   }
 
@@ -223,11 +245,16 @@
   }
 
   function restoreDefaults() {
-    if (!confirm("This will replace your current list with the original default list. Continue?")) return;
-    items = defaultItems();
+    if (!confirm("This will replace your current list with the default list. Continue?")) return;
+    items = getDefaultItems();
     clearSearch();
     render();
     persistNow();
+  }
+
+  function saveAsDefault() {
+    if (!confirm("Save the current list as your default? \"Restore\" will bring back this exact version from now on.")) return;
+    localStorage.setItem(CUSTOM_DEFAULT_KEY, JSON.stringify(items));
   }
 
   function hasPositiveQty(item) {
@@ -376,6 +403,7 @@
   document.getElementById("addRowBtn").addEventListener("click", addItem);
   document.getElementById("clearAllBtn").addEventListener("click", clearAll);
   document.getElementById("restoreDefaultsBtn").addEventListener("click", restoreDefaults);
+  document.getElementById("saveDefaultBtn").addEventListener("click", saveAsDefault);
   document.getElementById("printBtn").addEventListener("click", function () {
     // flush any pending debounced save before generating the shareable doc
     if (saveTimer) {
