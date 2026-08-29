@@ -1,12 +1,12 @@
 # Item List Tracker
 
-A tiny, dependency-free web app for tracking a list of items (name, spec, qty). No backend, no build step — everything lives in the browser.
+A tiny, dependency-free web app for tracking a list of items (name, spec, qty, optional comment). No backend, no build step — everything lives in the browser.
 
 ## Features
 
 - Ships pre-loaded with a default item list (edit `DEFAULT_ITEMS_DATA` in `app.js` to change it)
-- Add / delete items (name, spec, qty) directly in an always-editable table — no separate edit/save mode
-- Live search box filters the list by item name or spec as you type
+- Add / delete items (name, spec, qty, optional comment) directly in an always-editable table — no separate edit/save mode
+- Live search box filters the list by item name, spec, or comment as you type
 - Changes auto-save as you type (debounced ~500ms), with a small "Saving…/Saved" indicator
 - A single floating "+" button (bottom-right) expands into a menu for Add, Share, Restore, and Clear
 - **Restore** — reverts to the original pre-loaded list at any time (asks for confirmation first); restored quantities are left blank for you to fill in

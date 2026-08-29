@@ -74,7 +74,7 @@
 
   function defaultItems() {
     return DEFAULT_ITEMS_DATA.map(function (row) {
-      return { id: uid(), name: row[0], spec: row[1], qty: "" };
+      return { id: uid(), name: row[0], spec: row[1], qty: "", comment: "" };
     });
   }
 
@@ -154,7 +154,8 @@
   function matchesSearch(item) {
     if (!searchQuery) return true;
     return (item.name || "").toLowerCase().indexOf(searchQuery) !== -1 ||
-      (item.spec || "").toLowerCase().indexOf(searchQuery) !== -1;
+      (item.spec || "").toLowerCase().indexOf(searchQuery) !== -1 ||
+      (item.comment || "").toLowerCase().indexOf(searchQuery) !== -1;
   }
 
   function render() {
@@ -176,6 +177,7 @@
       tr.innerHTML =
         "<td class=\"col-name\"><input type=\"text\" class=\"cell-name\" data-id=\"" + item.id + "\" data-field=\"name\" value=\"" + escapeHtml(item.name) + "\" placeholder=\"Item name\"></td>" +
         "<td class=\"col-spec\" data-label=\"Spec\"><input type=\"text\" class=\"cell-spec\" data-id=\"" + item.id + "\" data-field=\"spec\" value=\"" + escapeHtml(item.spec) + "\" placeholder=\"Spec / details\"></td>" +
+        "<td class=\"col-comment\" data-label=\"Comment\"><input type=\"text\" class=\"cell-comment\" data-id=\"" + item.id + "\" data-field=\"comment\" value=\"" + escapeHtml(item.comment) + "\" placeholder=\"Add a comment (optional)\"></td>" +
         "<td class=\"col-qty\" data-label=\"Qty\"><input type=\"text\" inputmode=\"numeric\" class=\"cell-qty\" data-id=\"" + item.id + "\" data-field=\"qty\" value=\"" + escapeHtml(item.qty) + "\" placeholder=\"0\"></td>" +
         "<td class=\"col-actions\">" +
           "<button type=\"button\" class=\"delete-btn\" data-action=\"delete\" data-id=\"" + item.id + "\" title=\"Delete item\" aria-label=\"Delete item\">&times;</button>" +
@@ -195,7 +197,7 @@
     // clear any active search filter so the new blank item is guaranteed
     // to be visible and focusable, regardless of what was typed
     clearSearch();
-    var item = { id: uid(), name: "", spec: "", qty: "" };
+    var item = { id: uid(), name: "", spec: "", qty: "", comment: "" };
     items.push(item);
     render();
     persistNow();
@@ -248,12 +250,14 @@
         var name = escapeHtml(item.name) || "(unnamed item)";
         var spec = escapeHtml(item.spec);
         var qty = escapeHtml(item.qty);
+        var comment = escapeHtml(item.comment);
         html += "<div class=\"pd-item\">" +
           "<div class=\"pd-name\">" + name + "</div>" +
           "<div class=\"pd-row\">" +
             "<span class=\"pd-spec\">" + (spec || "&nbsp;") + "</span>" +
             "<span class=\"pd-qty\">Qty: " + qty + "</span>" +
           "</div>" +
+          (comment ? "<div class=\"pd-comment\">" + comment + "</div>" : "") +
         "</div>";
       });
     }
