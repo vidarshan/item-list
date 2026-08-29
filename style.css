@@ -273,24 +273,22 @@ td input.cell-name {
   flex-direction: column;
   align-items: flex-end;
   gap: 14px;
-  /* This wrapper's own box spans the whole column (menu + toggle), including
-     the space above the toggle where the menu sits when closed. Without
-     this, that box would keep intercepting clicks meant for list content
-     underneath it even though the menu inside is invisible. Each part that
-     should stay clickable (the toggle, and the menu while open) explicitly
-     re-enables pointer-events on itself below. */
-  pointer-events: none;
 }
 
+/* Closed state uses display:none rather than opacity/pointer-events tricks —
+   a display:none element contributes zero layout size and can never be a
+   click target, in every browser, with no edge cases. Opacity-based hiding
+   previously left an invisible-but-still-hit-testable box sitting over the
+   list, which kept intercepting taps meant for items underneath it. */
 .fab-menu {
+  display: none;
+}
+
+.fab-menu.is-open {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
-}
-
-.fab-menu.is-open {
-  pointer-events: auto;
 }
 
 .fab-mini {
@@ -307,7 +305,21 @@ td input.cell-name {
   border-radius: 999px;
   cursor: pointer;
   box-shadow: var(--shadow-float);
-  transition: opacity 0.16s ease, transform 0.16s ease, background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fab-menu.is-open .fab-mini {
+  animation: fabMiniIn 0.16s ease both;
+}
+
+.fab-menu.is-open .fab-mini:nth-child(1) { animation-delay: 0.09s; }
+.fab-menu.is-open .fab-mini:nth-child(2) { animation-delay: 0.06s; }
+.fab-menu.is-open .fab-mini:nth-child(3) { animation-delay: 0.03s; }
+.fab-menu.is-open .fab-mini:nth-child(4) { animation-delay: 0s; }
+
+@keyframes fabMiniIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .fab-mini svg {
@@ -326,17 +338,6 @@ td input.cell-name {
   color: var(--danger);
 }
 
-.fab-menu:not(.is-open) .fab-mini {
-  opacity: 0;
-  transform: translateY(10px) scale(0.92);
-  pointer-events: none;
-}
-
-.fab-menu.is-open .fab-mini:nth-child(1) { transition-delay: 0.09s; }
-.fab-menu.is-open .fab-mini:nth-child(2) { transition-delay: 0.06s; }
-.fab-menu.is-open .fab-mini:nth-child(3) { transition-delay: 0.03s; }
-.fab-menu.is-open .fab-mini:nth-child(4) { transition-delay: 0s; }
-
 .fab-toggle {
   width: 62px;
   height: 62px;
@@ -350,7 +351,6 @@ td input.cell-name {
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.2s ease;
-  pointer-events: auto;
 }
 
 .fab-toggle:hover {
