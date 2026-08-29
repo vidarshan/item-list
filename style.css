@@ -280,6 +280,14 @@ td input.cell-name {
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+  /* When closed, the mini buttons fade out via opacity but this container
+     still occupies its full layout box — without this, that invisible box
+     would keep intercepting clicks meant for list content underneath it. */
+  pointer-events: none;
+}
+
+.fab-menu.is-open {
+  pointer-events: auto;
 }
 
 .fab-mini {
