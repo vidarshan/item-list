@@ -273,6 +273,13 @@ td input.cell-name {
   flex-direction: column;
   align-items: flex-end;
   gap: 14px;
+  /* This wrapper's own box spans the whole column (menu + toggle), including
+     the space above the toggle where the menu sits when closed. Without
+     this, that box would keep intercepting clicks meant for list content
+     underneath it even though the menu inside is invisible. Each part that
+     should stay clickable (the toggle, and the menu while open) explicitly
+     re-enables pointer-events on itself below. */
+  pointer-events: none;
 }
 
 .fab-menu {
@@ -280,10 +287,6 @@ td input.cell-name {
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
-  /* When closed, the mini buttons fade out via opacity but this container
-     still occupies its full layout box — without this, that invisible box
-     would keep intercepting clicks meant for list content underneath it. */
-  pointer-events: none;
 }
 
 .fab-menu.is-open {
@@ -347,6 +350,7 @@ td input.cell-name {
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.2s ease;
+  pointer-events: auto;
 }
 
 .fab-toggle:hover {
@@ -444,10 +448,15 @@ td input.cell-name {
   }
 
   td.col-actions .delete-btn {
-    font-size: 1.3rem;
-    padding: 8px 10px;
-    min-width: 40px;
-    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    padding: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f7ece8;
   }
 
   td[data-label]::before {
