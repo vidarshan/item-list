@@ -40,7 +40,6 @@ button, input, select, textarea {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-ui);
   font-size: 0.78rem;
   color: var(--muted);
   white-space: nowrap;
@@ -260,70 +259,105 @@ td input.cell-name {
   padding: 24px 12px;
 }
 
-/* ---------- Floating action bar ---------- */
-.action-bar {
+/* ---------- Floating action cluster ----------
+   A single "+" FAB stays a one-tap action for the most frequent task (Add).
+   A small toggle above it expands/collapses a mini vertical menu with the
+   less-frequent actions (Share, Restore, Clear), each labeled. */
+
+.fab-cluster {
   position: fixed;
-  left: 50%;
+  right: 20px;
   bottom: 22px;
-  transform: translateX(-50%);
   z-index: 50;
   display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 8px;
-  box-shadow: var(--shadow-float);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
 }
 
-.action-btn {
+.fab-menu {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.fab-mini {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  border: none;
-  background: none;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
   color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: 0.76rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  padding: 12px 20px;
+  padding: 10px 16px;
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  box-shadow: var(--shadow-float);
+  transition: opacity 0.16s ease, transform 0.16s ease, background 0.15s ease, color 0.15s ease;
 }
 
-.action-btn svg {
-  width: 25px;
-  height: 25px;
+.fab-mini svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
-.action-btn:hover {
+.fab-mini:hover {
   background: var(--panel-alt);
   color: var(--text);
 }
 
-.action-btn-primary {
-  background: var(--primary);
-  color: #fff;
-}
-
-.action-btn-primary:hover {
-  background: var(--primary-dark);
-  color: #fff;
-}
-
-.action-btn-danger:hover {
+.fab-mini-danger:hover {
   background: #f3e2dc;
   color: var(--danger);
+}
+
+.fab-menu:not(.is-open) .fab-mini {
+  opacity: 0;
+  transform: translateY(10px) scale(0.92);
+  pointer-events: none;
+}
+
+.fab-menu.is-open .fab-mini:nth-child(1) { transition-delay: 0.09s; }
+.fab-menu.is-open .fab-mini:nth-child(2) { transition-delay: 0.06s; }
+.fab-menu.is-open .fab-mini:nth-child(3) { transition-delay: 0.03s; }
+.fab-menu.is-open .fab-mini:nth-child(4) { transition-delay: 0s; }
+
+.fab-toggle {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-float);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.2s ease;
+}
+
+.fab-toggle:hover {
+  background: var(--primary-dark);
+}
+
+.fab-toggle svg {
+  width: 27px;
+  height: 27px;
+}
+
+.fab-toggle.is-open {
+  transform: rotate(45deg);
 }
 
 /* ---------- Mobile ---------- */
 @media (max-width: 640px) {
   .page {
-    padding: 16px 12px 115px;
+    padding: 16px 12px 140px;
   }
 
   .doc-header {
@@ -426,20 +460,9 @@ td input.cell-name {
     display: block;
   }
 
-  .action-bar {
-    bottom: 14px;
-    gap: 0;
-    max-width: calc(100vw - 24px);
-  }
-
-  .action-btn {
-    padding: 9px 13px;
-    font-size: 0.66rem;
-  }
-
-  .action-btn svg {
-    width: 21px;
-    height: 21px;
+  .fab-cluster {
+    right: 16px;
+    bottom: 16px;
   }
 }
 

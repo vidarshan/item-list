@@ -7,51 +7,52 @@
   var DEFAULT_TITLE = "Items List";
   var SAVE_DEBOUNCE_MS = 500;
 
-  // [name, spec, qty] — pre-loaded on first run; restorable any time via "Restore Default List"
+  // [name, spec] — pre-loaded on first run; restorable any time via "Restore".
+  // Quantities are intentionally left blank for the user to fill in.
   var DEFAULT_ITEMS_DATA = [
-    ["Coca-Cola Original", "500ml", 4],
-    ["Coca-Cola Zero Sugar", "500ml", 5],
-    ["Diet Coke", "500ml", 4],
-    ["Sprite", "500ml", 4],
-    ["Fanta Orange", "500ml", 1],
-    ["Fanta Zero Sugar", "500ml", 2],
-    ["Canada Dry Ginger Ale", "500ml", 1],
-    ["Canada Dry Strawberry", "500ml", 1],
-    ["Canada Dry Peach Mango", "500ml", 3],
-    ["Fresca", "500ml", 3],
-    ["Smart Water", "591ml", 2],
-    ["Smart Water", "1L", 2],
-    ["Smart Water Alkaline", "591ml", 2],
-    ["Smart Water Alkaline", "1L", 4],
-    ["Minute Maid Orange Juice", "355ml", 1],
-    ["Fuze Lemon / Citron", "", 1],
-    ["Fuze Raspberry / Framboise", "", 3],
-    ["Powerade Fruit Punch", "", 6],
-    ["Powerade Orange", "", 7],
-    ["Powerade Mixed Berry", "", 4],
-    ["Powerade Melon", "", 4],
-    ["BodyArmor Strawberry Banana", "", 2],
-    ["Vitamin Water Orange", "", 3],
-    ["Vitamin Water Blueberry Pomegranate", "", 2],
-    ["Vitamin Water Blueberry Pomegranate Zero Sugar", "", 3],
-    ["Core Power Chocolate", "414ml", 1],
-    ["Monster Energy Green", "355ml", 7],
-    ["Monster Energy", "473ml", 1],
-    ["Monster Ultra Peachy Keen", "473ml", 2],
-    ["Monster Blue Hawaiian", "355ml", 5],
-    ["Monster Mango Loco", "473ml", 2],
-    ["Java Monster Loca Moka", "444ml", 1],
-    ["Red Bull Original", "250ml", 2],
-    ["Red Bull Zero / Sugar Free", "250ml", 5],
-    ["Red Bull Zero / Sugar Free", "355ml", 3],
-    ["Red Bull Pink Edition", "250ml", 1],
-    ["Red Bull Pink Edition", "355ml", 2],
-    ["Red Bull Lilac Edition", "355ml", 1],
-    ["Red Bull Summer Edition", "250ml", 2],
-    ["Red Bull Ice Edition", "250ml", 2],
-    ["Full Throttle", "473ml", 1],
-    ["NOS Energy", "473ml", 1],
-    ["Reign Energy", "473ml", 3]
+    ["Coca-Cola Original", "500ml"],
+    ["Coca-Cola Zero Sugar", "500ml"],
+    ["Diet Coke", "500ml"],
+    ["Sprite", "500ml"],
+    ["Fanta Orange", "500ml"],
+    ["Fanta Zero Sugar", "500ml"],
+    ["Canada Dry Ginger Ale", "500ml"],
+    ["Canada Dry Strawberry", "500ml"],
+    ["Canada Dry Peach Mango", "500ml"],
+    ["Fresca", "500ml"],
+    ["Smart Water", "591ml"],
+    ["Smart Water", "1L"],
+    ["Smart Water Alkaline", "591ml"],
+    ["Smart Water Alkaline", "1L"],
+    ["Minute Maid Orange Juice", "355ml"],
+    ["Fuze Lemon / Citron", ""],
+    ["Fuze Raspberry / Framboise", ""],
+    ["Powerade Fruit Punch", ""],
+    ["Powerade Orange", ""],
+    ["Powerade Mixed Berry", ""],
+    ["Powerade Melon", ""],
+    ["BodyArmor Strawberry Banana", ""],
+    ["Vitamin Water Orange", ""],
+    ["Vitamin Water Blueberry Pomegranate", ""],
+    ["Vitamin Water Blueberry Pomegranate Zero Sugar", ""],
+    ["Core Power Chocolate", "414ml"],
+    ["Monster Energy Green", "355ml"],
+    ["Monster Energy", "473ml"],
+    ["Monster Ultra Peachy Keen", "473ml"],
+    ["Monster Blue Hawaiian", "355ml"],
+    ["Monster Mango Loco", "473ml"],
+    ["Java Monster Loca Moka", "444ml"],
+    ["Red Bull Original", "250ml"],
+    ["Red Bull Zero / Sugar Free", "250ml"],
+    ["Red Bull Zero / Sugar Free", "355ml"],
+    ["Red Bull Pink Edition", "250ml"],
+    ["Red Bull Pink Edition", "355ml"],
+    ["Red Bull Lilac Edition", "355ml"],
+    ["Red Bull Summer Edition", "250ml"],
+    ["Red Bull Ice Edition", "250ml"],
+    ["Full Throttle", "473ml"],
+    ["NOS Energy", "473ml"],
+    ["Reign Energy", "473ml"]
   ];
 
   var itemsBody = document.getElementById("itemsBody");
@@ -73,7 +74,7 @@
 
   function defaultItems() {
     return DEFAULT_ITEMS_DATA.map(function (row) {
-      return { id: uid(), name: row[0], spec: row[1], qty: row[2] };
+      return { id: uid(), name: row[0], spec: row[1], qty: "" };
     });
   }
 
@@ -327,6 +328,38 @@
   searchInput.addEventListener("input", function () {
     searchQuery = searchInput.value.trim().toLowerCase();
     render();
+  });
+
+  // ---------- floating action cluster ----------
+
+  var fabToggle = document.getElementById("fabToggle");
+  var fabMenu = document.getElementById("fabMenu");
+
+  function closeFabMenu() {
+    fabMenu.classList.remove("is-open");
+    fabToggle.classList.remove("is-open");
+    fabToggle.setAttribute("aria-expanded", "false");
+  }
+
+  fabToggle.addEventListener("click", function () {
+    var open = fabMenu.classList.toggle("is-open");
+    fabToggle.classList.toggle("is-open", open);
+    fabToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+
+  // any action inside the mini menu collapses it back afterward
+  fabMenu.addEventListener("click", function (e) {
+    if (e.target.closest(".fab-mini")) closeFabMenu();
+  });
+
+  document.addEventListener("click", function (e) {
+    if (fabMenu.classList.contains("is-open") && !e.target.closest(".fab-cluster")) {
+      closeFabMenu();
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeFabMenu();
   });
 
   document.getElementById("addRowBtn").addEventListener("click", addItem);
