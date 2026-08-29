@@ -228,19 +228,26 @@
     persistNow();
   }
 
+  function hasPositiveQty(item) {
+    return Number(item.qty) > 0;
+  }
+
   // Builds a plain, static rendering of the current list for Print/Save as PDF.
   // This is a separate element from the live editable table, so the exported
-  // document is just the content — no buttons, inputs, or app chrome.
+  // document is just the content — no buttons, inputs, or app chrome. Items
+  // with no quantity set (blank or 0) are left out, since a shareable list
+  // is only useful for what actually needs to be picked up.
   function buildPrintDoc() {
     var html = "";
+    var printableItems = items.filter(hasPositiveQty);
 
-    if (items.length === 0) {
-      html += "<div class=\"pd-empty\">No items.</div>";
+    if (printableItems.length === 0) {
+      html += "<div class=\"pd-empty\">No items with a quantity to share.</div>";
     } else {
-      items.forEach(function (item) {
+      printableItems.forEach(function (item) {
         var name = escapeHtml(item.name) || "(unnamed item)";
         var spec = escapeHtml(item.spec);
-        var qty = escapeHtml(item.qty) || "0";
+        var qty = escapeHtml(item.qty);
         html += "<div class=\"pd-item\">" +
           "<div class=\"pd-name\">" + name + "</div>" +
           "<div class=\"pd-row\">" +
