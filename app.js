@@ -200,7 +200,11 @@
         "<td class=\"col-name\"><input type=\"text\" class=\"cell-name\" data-id=\"" + item.id + "\" data-field=\"name\" value=\"" + escapeHtml(item.name) + "\" placeholder=\"Item name\"></td>" +
         "<td class=\"col-spec\" data-label=\"Spec\"><input type=\"text\" class=\"cell-spec\" data-id=\"" + item.id + "\" data-field=\"spec\" value=\"" + escapeHtml(item.spec) + "\" placeholder=\"Spec / details\"></td>" +
         "<td class=\"col-comment\" data-label=\"Comment\"><input type=\"text\" class=\"cell-comment\" data-id=\"" + item.id + "\" data-field=\"comment\" value=\"" + escapeHtml(item.comment) + "\" placeholder=\"Add a comment (optional)\"></td>" +
-        "<td class=\"col-qty\" data-label=\"Qty\"><input type=\"text\" inputmode=\"numeric\" class=\"cell-qty\" data-id=\"" + item.id + "\" data-field=\"qty\" value=\"" + escapeHtml(item.qty) + "\" placeholder=\"0\"></td>" +
+        "<td class=\"col-qty\" data-label=\"Qty\"><div class=\"qty-stepper\">" +
+          "<button type=\"button\" class=\"qty-btn\" data-action=\"qty-decrement\" data-id=\"" + item.id + "\" title=\"Decrease quantity\" aria-label=\"Decrease quantity\">&minus;</button>" +
+          "<input type=\"text\" inputmode=\"numeric\" class=\"cell-qty\" data-id=\"" + item.id + "\" data-field=\"qty\" value=\"" + escapeHtml(item.qty) + "\" placeholder=\"0\">" +
+          "<button type=\"button\" class=\"qty-btn\" data-action=\"qty-increment\" data-id=\"" + item.id + "\" title=\"Increase quantity\" aria-label=\"Increase quantity\">&plus;</button>" +
+        "</div></td>" +
         "<td class=\"col-actions\">" +
           "<button type=\"button\" class=\"delete-btn\" data-action=\"delete\" data-id=\"" + item.id + "\" title=\"Delete item\" aria-label=\"Delete item\">&times;</button>" +
         "</td>";
@@ -255,6 +259,19 @@
   function saveAsDefault() {
     if (!confirm("Save the current list as your default? \"Restore\" will bring back this exact version from now on.")) return;
     localStorage.setItem(CUSTOM_DEFAULT_KEY, JSON.stringify(items));
+  }
+
+  function stepQty(id, delta) {
+    var item = items.find(function (i) { return i.id === id; });
+    if (!item) return;
+    var current = parseInt(item.qty, 10);
+    if (isNaN(current) || current < 0) current = 0;
+    var next = current + delta;
+    if (next < 0) next = 0;
+    item.qty = String(next);
+    var input = itemsBody.querySelector('input[data-id="' + id + '"][data-field="qty"]');
+    if (input) input.value = item.qty;
+    scheduleSave();
   }
 
   function hasPositiveQty(item) {
@@ -358,9 +375,13 @@
   });
 
   itemsBody.addEventListener("click", function (e) {
-    var btn = e.target.closest('button[data-action="delete"]');
+    var btn = e.target.closest("button[data-action]");
     if (!btn) return;
-    deleteItem(btn.getAttribute("data-id"));
+    var action = btn.getAttribute("data-action");
+    var id = btn.getAttribute("data-id");
+    if (action === "delete") deleteItem(id);
+    else if (action === "qty-increment") stepQty(id, 1);
+    else if (action === "qty-decrement") stepQty(id, -1);
   });
 
   searchInput.addEventListener("input", function () {

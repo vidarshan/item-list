@@ -195,7 +195,7 @@ th {
 .col-qty {
   text-align: right;
   white-space: nowrap;
-  width: 90px;
+  width: 128px;
 }
 
 .col-actions {
@@ -231,6 +231,50 @@ td input:focus {
 
 td input.cell-qty {
   text-align: right;
+}
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.qty-stepper input.cell-qty {
+  width: 36px;
+  flex: 0 0 36px;
+  padding: 6px 2px;
+  text-align: center;
+}
+
+.qty-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--primary);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.qty-btn:hover {
+  background: var(--panel-alt);
+  border-color: var(--primary);
+}
+
+.qty-btn:active {
+  background: var(--primary);
+  color: var(--panel);
+  border-color: var(--primary);
 }
 
 td input.cell-name {
@@ -398,14 +442,19 @@ td input.cell-name {
   }
 
   tr {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name    name"
+      "spec    qty"
+      "comment comment";
+    column-gap: 14px;
+    row-gap: 6px;
+    position: relative;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 10px 12px;
+    padding: 12px 40px 12px 12px;
     margin-bottom: 10px;
   }
 
@@ -417,10 +466,8 @@ td input.cell-name {
   }
 
   td.col-name {
-    flex: 1 1 100%;
+    grid-area: name;
     width: auto;
-    order: 1;
-    padding-bottom: 6px;
   }
 
   td.col-name input {
@@ -428,45 +475,58 @@ td input.cell-name {
   }
 
   td.col-spec {
-    flex: 1 1 auto;
+    grid-area: spec;
     width: auto;
     min-width: 0;
-    order: 2;
   }
 
   td.col-qty {
-    flex: 0 0 64px;
-    width: 64px;
-    order: 3;
+    grid-area: qty;
+    width: auto;
   }
 
-  td.col-actions {
-    /* .col-actions has width:1% (a desktop table auto-fit trick) which would
-       otherwise become this flex item's basis and collapse it to a few px,
-       pushing the delete button off-screen instead of sizing to content. */
-    flex: 0 0 auto;
-    width: auto;
-    order: 4;
-    margin-left: auto;
-    padding-left: 4px;
+  td.col-qty .qty-stepper {
+    justify-content: flex-start;
+  }
+
+  td.col-qty .qty-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  td.col-qty input.cell-qty {
+    font-size: 1.05rem;
   }
 
   td.col-comment {
-    flex: 1 1 100%;
+    grid-area: comment;
     width: auto;
-    order: 5;
     padding-top: 6px;
+  }
+
+  td.col-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: auto;
+    padding: 0;
   }
 
   td.col-actions .delete-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    font-size: 1.1rem;
     padding: 0;
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    background: transparent;
+  }
+
+  td.col-actions .delete-btn:hover,
+  td.col-actions .delete-btn:active {
     background: #f7ece8;
   }
 
