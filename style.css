@@ -428,6 +428,10 @@ td input.cell-name {
     flex-wrap: wrap;
   }
 
+  #searchInput {
+    font-size: 1rem;
+  }
+
   table {
     border: none;
     background: transparent;
@@ -480,6 +484,10 @@ td input.cell-name {
     min-width: 0;
   }
 
+  td.col-spec input {
+    font-size: 1rem;
+  }
+
   td.col-qty {
     grid-area: qty;
     width: auto;
@@ -503,6 +511,10 @@ td input.cell-name {
     grid-area: comment;
     width: auto;
     padding-top: 6px;
+  }
+
+  td.col-comment input {
+    font-size: 1rem;
   }
 
   td.col-actions {
