@@ -316,8 +316,8 @@
   // accurate scrollHeight, then restored — happens within one synchronous
   // pass, so nothing is visibly shown on screen.
   function updatePrintPageSize() {
-    var PAGE_WIDTH_IN = 4;
-    var SIDE_MARGIN_MM = 6; // matches @page margin's left/right value
+    var PAGE_WIDTH_IN = 3.5;
+    var SIDE_MARGIN_MM = 5; // matches @page margin's left/right value
     var TOP_BOTTOM_MARGIN_MM = 10; // matches @page margin's top/bottom value
 
     var prevCssText = printDoc.style.cssText;

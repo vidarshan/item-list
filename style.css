@@ -19,11 +19,16 @@
   box-sizing: border-box;
 }
 
+html {
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
   font-family: var(--font-display);
   background: var(--bg);
   color: var(--text);
+  touch-action: manipulation;
 }
 
 button, input, select, textarea {
@@ -629,8 +634,8 @@ td input.cell-name {
    tighter fit via an injected <style id="printPageSize">, so there's no
    leftover blank space after the list. */
 @page {
-  size: 4in 11in;
-  margin: 10mm 6mm;
+  size: 3.5in 11in;
+  margin: 10mm 5mm;
 }
 
 @media print {
