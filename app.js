@@ -309,14 +309,18 @@
     printDoc.innerHTML = html;
   }
 
-  // Measures the built print-doc's real content height and overrides the
-  // @page height to fit it exactly, so the PDF doesn't end with a long
-  // blank gap after the list. printDoc is normally display:none, so it's
-  // briefly laid out off-screen at the true print content width to get an
-  // accurate scrollHeight, then restored — happens within one synchronous
-  // pass, so nothing is visibly shown on screen.
+  // Measures the built print-doc's real content height and sets the @page
+  // height to match, so a short list doesn't end with a long blank gap.
+  // Height is capped at MAX_PAGE_HEIGHT_IN — a phone-screen-like proportion —
+  // so a long list paginates into multiple screen-sized pages instead of one
+  // huge page, which most mobile PDF viewers shrink-to-fit and render tiny.
+  // printDoc is normally display:none, so it's briefly laid out off-screen
+  // at the true print content width to get an accurate scrollHeight, then
+  // restored — happens within one synchronous pass, so nothing is visibly
+  // shown on screen.
   function updatePrintPageSize() {
     var PAGE_WIDTH_IN = 3.5;
+    var MAX_PAGE_HEIGHT_IN = 7.5; // ~9:19.5, close to a typical phone screen
     var SIDE_MARGIN_MM = 5; // matches @page margin's left/right value
     var TOP_BOTTOM_MARGIN_MM = 10; // matches @page margin's top/bottom value
 
@@ -329,7 +333,8 @@
 
     printDoc.style.cssText = prevCssText;
 
-    var heightIn = (contentHeightPx / 96) + ((TOP_BOTTOM_MARGIN_MM * 2) / 25.4) + 0.15;
+    var fittedHeightIn = (contentHeightPx / 96) + ((TOP_BOTTOM_MARGIN_MM * 2) / 25.4) + 0.15;
+    var heightIn = Math.min(fittedHeightIn, MAX_PAGE_HEIGHT_IN);
 
     var styleEl = document.getElementById("printPageSize");
     if (!styleEl) {

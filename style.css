@@ -589,6 +589,8 @@ td input.cell-name {
 .print-doc .pd-item {
   padding: 9px 0;
   border-bottom: 1px solid #ddd;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .print-doc .pd-item:last-child {
@@ -634,7 +636,7 @@ td input.cell-name {
    tighter fit via an injected <style id="printPageSize">, so there's no
    leftover blank space after the list. */
 @page {
-  size: 3.5in 11in;
+  size: 3.5in 7.5in;
   margin: 10mm 5mm;
 }
 
