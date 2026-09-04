@@ -274,21 +274,22 @@
     scheduleSave();
   }
 
-  function hasPositiveQty(item) {
-    return Number(item.qty) > 0;
+  function isPrintable(item) {
+    return Number(item.qty) > 1 || Boolean(item.comment && item.comment.trim());
   }
 
   // Builds a plain, static rendering of the current list for Print/Save as PDF.
   // This is a separate element from the live editable table, so the exported
-  // document is just the content — no buttons, inputs, or app chrome. Items
-  // with no quantity set (blank or 0) are left out, since a shareable list
-  // is only useful for what actually needs to be picked up.
+  // document is just the content — no buttons, inputs, or app chrome. An item
+  // is included if it needs more than one picked up (qty > 1) or has a note
+  // worth passing along, even at qty 0/blank — a shareable list is only
+  // useful for what actually needs attention.
   function buildPrintDoc() {
     var html = "";
-    var printableItems = items.filter(hasPositiveQty);
+    var printableItems = items.filter(isPrintable);
 
     if (printableItems.length === 0) {
-      html += "<div class=\"pd-empty\">No items with a quantity to share.</div>";
+      html += "<div class=\"pd-empty\">No items to share.</div>";
     } else {
       printableItems.forEach(function (item) {
         var name = escapeHtml(item.name) || "(unnamed item)";
@@ -296,11 +297,11 @@
         var qty = escapeHtml(item.qty);
         var comment = escapeHtml(item.comment);
         html += "<div class=\"pd-item\">" +
-          "<div class=\"pd-name\">" + name + "</div>" +
-          "<div class=\"pd-row\">" +
-            "<span class=\"pd-spec\">" + (spec || "&nbsp;") + "</span>" +
-            "<span class=\"pd-qty\">Qty: " + qty + "</span>" +
+          "<div class=\"pd-name-row\">" +
+            "<span class=\"pd-name\">" + name + "</span>" +
+            (Number(item.qty) > 0 ? "<span class=\"pd-qty\">Qty: " + qty + "</span>" : "") +
           "</div>" +
+          (spec ? "<div class=\"pd-spec\">" + spec + "</div>" : "") +
           (comment ? "<div class=\"pd-comment\">" + comment + "</div>" : "") +
         "</div>";
       });

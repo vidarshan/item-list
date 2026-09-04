@@ -597,29 +597,32 @@ td input.cell-name {
   border-bottom: none;
 }
 
+.print-doc .pd-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .print-doc .pd-name {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.05rem;
   color: #000;
-}
-
-.print-doc .pd-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 3px;
-  font-size: 0.85rem;
-  color: #333;
-}
-
-.print-doc .pd-spec {
   overflow-wrap: anywhere;
 }
 
 .print-doc .pd-qty {
+  font-size: 0.85rem;
+  color: #333;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.print-doc .pd-spec {
+  margin-top: 3px;
+  font-size: 0.85rem;
+  color: #333;
+  overflow-wrap: anywhere;
 }
 
 .print-doc .pd-comment {
