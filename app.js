@@ -275,15 +275,15 @@
   }
 
   function isPrintable(item) {
-    return Number(item.qty) > 1 || Boolean(item.comment && item.comment.trim());
+    return Number(item.qty) > 0 || Boolean(item.comment && item.comment.trim());
   }
 
   // Builds a plain, static rendering of the current list for Print/Save as PDF.
   // This is a separate element from the live editable table, so the exported
   // document is just the content — no buttons, inputs, or app chrome. An item
-  // is included if it needs more than one picked up (qty > 1) or has a note
-  // worth passing along, even at qty 0/blank — a shareable list is only
-  // useful for what actually needs attention.
+  // is included if it has a quantity set (qty > 0) or has a note worth
+  // passing along, even at qty 0/blank — a shareable list is only useful
+  // for what actually needs attention.
   function buildPrintDoc() {
     var html = "";
     var printableItems = items.filter(isPrintable);
