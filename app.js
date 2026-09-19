@@ -429,10 +429,15 @@
         nameLines.forEach(function (line, i) {
           ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
           if (i === 0 && hasQty) {
+            // Center the badge on the actual ink of the name line next to
+            // it (not a guessed offset), so it lines up with that row
+            // regardless of font metrics.
+            var lineMetrics = measure.measureText(line);
+            var lineMid = y - (lineMetrics.actualBoundingBoxAscent - lineMetrics.actualBoundingBoxDescent) / 2;
             ops.push({
               type: "qtyBadge",
               cx: SHARE_WIDTH - PAD_X - QTY_BADGE_DIAM / 2,
-              cy: y - 7,
+              cy: lineMid,
               radius: QTY_BADGE_DIAM / 2,
               qty: item.qty
             });
@@ -491,15 +496,17 @@
         ctx.font = "700 14px " + SHARE_FONT_DISPLAY;
         ctx.fillStyle = SHARE_COLORS.qtyText;
         ctx.textAlign = "center";
-        // canvas's "middle" baseline centers on font ascent/descent metrics,
-        // which for a serif display face don't line up with where the glyph
-        // actually sits — measure the glyph's own rendered box instead so
-        // it's centered on what's really drawn, not the font's metrics.
+        // "middle"/"center" alignment centers on the font's advance-box
+        // metrics, which for a serif display face don't line up with where
+        // the glyph is actually inked (especially off-center for a single
+        // digit). Measure the glyph's own rendered bounding box instead and
+        // center on that — correct for both axes, not just the baseline.
         ctx.textBaseline = "alphabetic";
         var qtyMetrics = ctx.measureText(qtyLabel);
         var qtyTextH = qtyMetrics.actualBoundingBoxAscent + qtyMetrics.actualBoundingBoxDescent;
         var qtyBaselineY = op.cy + qtyTextH / 2 - qtyMetrics.actualBoundingBoxDescent;
-        ctx.fillText(qtyLabel, op.cx, qtyBaselineY);
+        var qtyXOffset = (qtyMetrics.actualBoundingBoxRight - qtyMetrics.actualBoundingBoxLeft) / 2;
+        ctx.fillText(qtyLabel, op.cx - qtyXOffset, qtyBaselineY);
         return;
       }
       ctx.font = op.font;
