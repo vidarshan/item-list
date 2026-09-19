@@ -12,7 +12,7 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 - **Set Default** — optionally saves your current list (including any edits, additions, or deletions) as your new default, so **Restore** brings back that exact version instead of the original pre-loaded list from then on
 - **Restore** — reverts to your saved default if you've set one, otherwise the original pre-loaded list (asks for confirmation first)
 - Data persists in the browser's `localStorage` until you explicitly hit **Clear**
-- **Share** — opens the browser print dialog with a plain, content-only document (no app UI); choose "Save as PDF" as the destination to get a shareable PDF, pre-named from the list title and current date/time. Note: some browsers (notably iOS Safari's share sheet) don't honor the suggested filename — you may need to rename it manually there. Items with no quantity set (blank or 0) are left out of the shared document, since only what actually needs picking up is useful there
+- **Share** — renders the list as a PNG image (via `<canvas>`, no external library) and opens the native share sheet (Messages, Mail, AirDrop, etc.) with the image attached; falls back to just downloading the image if the browser doesn't support file sharing. Pre-named from the list title and current date/time. Items with no quantity set (blank or 0) are left out of the shared image, since only what actually needs picking up is useful there
 - Editable, persisted list title, plus generated-date and last-updated timestamps
 
 ## Running locally

@@ -67,7 +67,6 @@
   var docDateEl = document.getElementById("docDate");
   var docUpdatedEl = document.getElementById("docUpdated");
   var saveStatusEl = document.getElementById("saveStatus");
-  var printDoc = document.getElementById("printDoc");
   var searchInput = document.getElementById("searchInput");
 
   var isFirstRun = localStorage.getItem(STORAGE_KEY) === null;
@@ -282,78 +281,7 @@
     return Number(item.qty) > 0 || Boolean(item.comment && item.comment.trim());
   }
 
-  // Builds a plain, static rendering of the current list for Print/Save as PDF.
-  // This is a separate element from the live editable table, so the exported
-  // document is just the content — no buttons, inputs, or app chrome. An item
-  // is included if it has a quantity set (qty > 0) or has a note worth
-  // passing along, even at qty 0/blank — a shareable list is only useful
-  // for what actually needs attention.
-  function buildPrintDoc() {
-    var html = "";
-    var printableItems = items.filter(isPrintable);
-
-    if (printableItems.length === 0) {
-      html += "<div class=\"pd-empty\">No items to share.</div>";
-    } else {
-      printableItems.forEach(function (item) {
-        var name = escapeHtml(item.name) || "(unnamed item)";
-        var spec = escapeHtml(item.spec);
-        var qty = escapeHtml(item.qty);
-        var comment = escapeHtml(item.comment);
-        html += "<div class=\"pd-item\">" +
-          "<div class=\"pd-name-row\">" +
-            "<span class=\"pd-name\">" + name + "</span>" +
-            (Number(item.qty) > 0 ? "<span class=\"pd-qty\">Qty: " + qty + "</span>" : "") +
-          "</div>" +
-          (spec ? "<div class=\"pd-spec\">" + spec + "</div>" : "") +
-          (comment ? "<div class=\"pd-comment\">" + comment + "</div>" : "") +
-        "</div>";
-      });
-    }
-
-    printDoc.innerHTML = html;
-  }
-
-  // Measures the built print-doc's real content height and sets the @page
-  // height to match, so a short list doesn't end with a long blank gap.
-  // Height is capped at MAX_PAGE_HEIGHT_IN — a phone-screen-like proportion —
-  // so a long list paginates into multiple screen-sized pages instead of one
-  // huge page, which most mobile PDF viewers shrink-to-fit and render tiny.
-  // printDoc is normally display:none, so it's briefly laid out off-screen
-  // at the true print content width to get an accurate scrollHeight, then
-  // restored — happens within one synchronous pass, so nothing is visibly
-  // shown on screen.
-  function updatePrintPageSize() {
-    var PAGE_WIDTH_IN = 3.5;
-    var MAX_PAGE_HEIGHT_IN = 7.5; // ~9:19.5, close to a typical phone screen
-    var SIDE_MARGIN_MM = 5; // matches @page margin's left/right value
-    var TOP_BOTTOM_MARGIN_MM = 10; // matches @page margin's top/bottom value
-
-    var prevCssText = printDoc.style.cssText;
-    printDoc.style.cssText =
-      "display:block; position:fixed; visibility:hidden; left:-9999px; top:0; " +
-      "width:calc(" + PAGE_WIDTH_IN + "in - " + (SIDE_MARGIN_MM * 2) + "mm);";
-
-    var contentHeightPx = printDoc.scrollHeight;
-
-    printDoc.style.cssText = prevCssText;
-
-    var fittedHeightIn = (contentHeightPx / 96) + ((TOP_BOTTOM_MARGIN_MM * 2) / 25.4) + 0.15;
-    var heightIn = Math.min(fittedHeightIn, MAX_PAGE_HEIGHT_IN);
-
-    var styleEl = document.getElementById("printPageSize");
-    if (!styleEl) {
-      styleEl = document.createElement("style");
-      styleEl.id = "printPageSize";
-      document.head.appendChild(styleEl);
-    }
-    styleEl.textContent = "@page { size: " + PAGE_WIDTH_IN + "in " + heightIn.toFixed(2) + "in; }";
-  }
-
-  // Browsers suggest document.title as the default filename in the
-  // "Save as PDF" dialog, so this is set right before printing and
-  // restored to the normal tab title in "afterprint".
-  function printFilename() {
+  function shareFilenameBase() {
     var slug = (listTitleInput.value.trim() || DEFAULT_TITLE)
       .replace(/[^a-zA-Z0-9]+/g, "_")
       .replace(/^_+|_+$/g, "") || "item_list";
@@ -362,6 +290,237 @@
     var dateStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
     var timeStr = pad(now.getHours()) + pad(now.getMinutes());
     return slug + "_at_" + dateStr + "_" + timeStr;
+  }
+
+  // ---------- shareable image ----------
+  // Renders the current list as a PNG via <canvas> (no DOM screenshot lib,
+  // no print/PDF pipeline) so sharing is just "produce an image file" —
+  // something every platform's share sheet / Photos / Messages handles
+  // reliably, unlike the old print-to-PDF dialog. Same "what's printable"
+  // rule as before: an item needs a quantity set (qty > 0) or a comment to
+  // be worth sharing.
+
+  var SHARE_WIDTH = 640;
+  var SHARE_SCALE = 2; // retina-ish output resolution
+  var SHARE_FONT_DISPLAY = "Georgia, 'Times New Roman', serif";
+  var SHARE_FONT_UI = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var SHARE_COLORS = {
+    bg: "#fffdf8",
+    text: "#2b241c",
+    muted: "#8a7c66",
+    border: "#e2d7bf"
+  };
+
+  // Wraps text to fit maxWidth using ctx's current font, breaking on spaces
+  // and falling back to character-level breaks for single overlong words.
+  function wrapText(ctx, text, maxWidth) {
+    var words = text.split(/\s+/).filter(Boolean);
+    var lines = [];
+    var line = "";
+
+    function breakWord(word) {
+      var chunk = "";
+      for (var i = 0; i < word.length; i++) {
+        var next = chunk + word[i];
+        if (chunk && ctx.measureText(next).width > maxWidth) {
+          lines.push(chunk);
+          chunk = word[i];
+        } else {
+          chunk = next;
+        }
+      }
+      return chunk;
+    }
+
+    words.forEach(function (word) {
+      var candidate = line ? line + " " + word : word;
+      if (ctx.measureText(candidate).width <= maxWidth) {
+        line = candidate;
+        return;
+      }
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      line = ctx.measureText(word).width <= maxWidth ? word : breakWord(word);
+    });
+
+    if (line) lines.push(line);
+    return lines.length ? lines : [""];
+  }
+
+  // Lays out the whole doc onto a throwaway measuring context first (to
+  // get the exact content height), then replays the same draw instructions
+  // onto a canvas sized to fit — so there's no leftover blank space.
+  function buildShareCanvas() {
+    var PAD_X = 32;
+    var PAD_TOP = 36;
+    var PAD_BOTTOM = 30;
+    var contentWidth = SHARE_WIDTH - PAD_X * 2;
+
+    var measure = document.createElement("canvas").getContext("2d");
+    var ops = [];
+    var y = PAD_TOP;
+
+    var title = listTitleInput.value.trim() || DEFAULT_TITLE;
+    var dateLabel = "Generated: " + new Date().toLocaleDateString(undefined, {
+      year: "numeric", month: "long", day: "numeric"
+    });
+
+    measure.font = "700 26px " + SHARE_FONT_DISPLAY;
+    wrapText(measure, title, contentWidth).forEach(function (line) {
+      ops.push({ type: "text", text: line, x: PAD_X, y: y, font: measure.font, color: SHARE_COLORS.text });
+      y += 32;
+    });
+
+    y += 4;
+    measure.font = "13px " + SHARE_FONT_UI;
+    ops.push({ type: "text", text: dateLabel, x: PAD_X, y: y, font: measure.font, color: SHARE_COLORS.muted });
+    y += 26;
+
+    var printableItems = items.filter(isPrintable);
+
+    if (printableItems.length === 0) {
+      measure.font = "italic 15px " + SHARE_FONT_UI;
+      ops.push({ type: "text", text: "No items to share.", x: PAD_X, y: y, font: measure.font, color: SHARE_COLORS.muted });
+      y += 24;
+    } else {
+      printableItems.forEach(function (item, index) {
+        if (index > 0) {
+          ops.push({ type: "rule", x1: PAD_X, x2: SHARE_WIDTH - PAD_X, y: y, color: SHARE_COLORS.border });
+          y += 14;
+        } else {
+          y += 4;
+        }
+
+        var name = item.name.trim() || "(unnamed item)";
+        var hasQty = Number(item.qty) > 0;
+        var qtyText = hasQty ? "Qty: " + item.qty : "";
+
+        measure.font = "600 18px " + SHARE_FONT_DISPLAY;
+        var qtyWidth = 0;
+        if (hasQty) {
+          measure.font = "13px " + SHARE_FONT_UI;
+          qtyWidth = measure.measureText(qtyText).width + 14;
+        }
+        measure.font = "600 18px " + SHARE_FONT_DISPLAY;
+        var nameLines = wrapText(measure, name, contentWidth - qtyWidth);
+
+        nameLines.forEach(function (line, i) {
+          ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
+          if (i === 0 && hasQty) {
+            ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_UI, color: SHARE_COLORS.text, align: "right" });
+          }
+          y += 24;
+        });
+
+        if (item.spec && item.spec.trim()) {
+          measure.font = "13px " + SHARE_FONT_UI;
+          wrapText(measure, item.spec.trim(), contentWidth).forEach(function (line) {
+            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "13px " + SHARE_FONT_UI, color: SHARE_COLORS.muted });
+            y += 19;
+          });
+        }
+
+        if (item.comment && item.comment.trim()) {
+          measure.font = "italic 12.5px " + SHARE_FONT_UI;
+          wrapText(measure, item.comment.trim(), contentWidth).forEach(function (line) {
+            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "italic 12.5px " + SHARE_FONT_UI, color: SHARE_COLORS.muted });
+            y += 18;
+          });
+        }
+
+        y += 8;
+      });
+    }
+
+    y += PAD_BOTTOM - 8;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = SHARE_WIDTH * SHARE_SCALE;
+    canvas.height = Math.round(y) * SHARE_SCALE;
+    var ctx = canvas.getContext("2d");
+    ctx.scale(SHARE_SCALE, SHARE_SCALE);
+    ctx.fillStyle = SHARE_COLORS.bg;
+    ctx.fillRect(0, 0, SHARE_WIDTH, y);
+    ctx.textBaseline = "alphabetic";
+
+    ops.forEach(function (op) {
+      if (op.type === "rule") {
+        ctx.strokeStyle = op.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(op.x1, op.y - 7);
+        ctx.lineTo(op.x2, op.y - 7);
+        ctx.stroke();
+        return;
+      }
+      ctx.font = op.font;
+      ctx.fillStyle = op.color;
+      ctx.textAlign = op.align === "right" ? "right" : "left";
+      ctx.fillText(op.text, op.x, op.y);
+    });
+
+    return canvas;
+  }
+
+  function canvasToBlob(canvas) {
+    return new Promise(function (resolve, reject) {
+      canvas.toBlob(function (blob) {
+        if (blob) resolve(blob); else reject(new Error("canvas.toBlob failed"));
+      }, "image/png");
+    });
+  }
+
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // Tries the native share sheet with the image as a file attachment first
+  // (best-supported file type for iOS/Android share targets); if the
+  // platform can't share files, falls back to a plain download so the user
+  // still ends up with the image to send however they like.
+  function shareList() {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      persistNow();
+    }
+
+    var fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function () {}) : Promise.resolve();
+
+    fontsReady.then(function () {
+      var canvas = buildShareCanvas();
+      return canvasToBlob(canvas);
+    }).then(function (blob) {
+      var filename = shareFilenameBase() + ".png";
+      var title = listTitleInput.value.trim() || DEFAULT_TITLE;
+
+      if (navigator.canShare && (function () {
+        try {
+          return navigator.canShare({ files: [new File([blob], filename, { type: "image/png" })] });
+        } catch (e) {
+          return false;
+        }
+      })()) {
+        var file = new File([blob], filename, { type: "image/png" });
+        return navigator.share({ files: [file], title: title }).catch(function (err) {
+          if (err && err.name === "AbortError") return;
+          downloadBlob(blob, filename);
+        });
+      }
+
+      downloadBlob(blob, filename);
+    }).catch(function (err) {
+      console.error("Share failed", err);
+    });
   }
 
   function updateDocDate() {
@@ -435,28 +594,7 @@
   document.getElementById("clearAllBtn").addEventListener("click", clearAll);
   document.getElementById("restoreDefaultsBtn").addEventListener("click", restoreDefaults);
   document.getElementById("saveDefaultBtn").addEventListener("click", saveAsDefault);
-  document.getElementById("printBtn").addEventListener("click", function () {
-    // flush any pending debounced save before generating the shareable doc
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-      saveTimer = null;
-      persistNow();
-    }
-    window.print();
-  });
-
-  // rebuild the plain print doc, refit the page height, and set the
-  // suggested filename right before printing, however it was triggered
-  // (our button, Ctrl/Cmd+P, or the browser's print menu)
-  window.addEventListener("beforeprint", function () {
-    buildPrintDoc();
-    updatePrintPageSize();
-    document.title = printFilename();
-  });
-
-  window.addEventListener("afterprint", function () {
-    document.title = (listTitleInput.value.trim() || DEFAULT_TITLE);
-  });
+  document.getElementById("shareBtn").addEventListener("click", shareList);
 
   listTitleInput.addEventListener("input", function () {
     localStorage.setItem(TITLE_KEY, listTitleInput.value);
