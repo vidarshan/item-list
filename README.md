@@ -7,6 +7,8 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 - Ships pre-loaded with a default item list (edit `DEFAULT_ITEMS_DATA` in `app.js` to change it)
 - Add / delete items (name, spec, qty, optional comment) directly in an always-editable table — no separate edit/save mode
 - Items must stay distinct: editing a name or spec so it exactly matches another item's name + spec (case-insensitive) reverts that edit with a warning once you leave the field. Two items can still share a name if their spec differs (e.g. "Smart Water" 591ml vs 1L)
+- Each row shows a numbered badge (1, 2, 3…) reflecting its position in the currently visible list
+- A separate "back to top" button (bottom-left, apart from the main action menu) appears once you've scrolled down and smooth-scrolls back to the top of the list
 - Live search box filters the list by item name, spec, or comment as you type
 - Changes auto-save as you type (debounced ~500ms), with a small "Saving…/Saved" indicator
 - A single floating "+" button (bottom-right) expands into a menu for Add, Share, Sort A-Z, Set Default, Restore, and Clear Qtys
@@ -15,7 +17,7 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 - **Restore** — reverts to your saved default if you've set one, otherwise the original pre-loaded list (asks for confirmation first). Quantities always come back blank, even if the saved default had them filled in — only names/specs/comments carry over
 - **Clear Qtys** — resets every item's quantity to blank, keeping the items themselves (names, specs, comments) untouched (asks for confirmation first)
 - Data persists in the browser's `localStorage` until you explicitly clear your browser's site data
-- **Share** — renders the list as a PNG image (via `<canvas>`, no external library) and opens the native share sheet (Messages, Mail, AirDrop, etc.) with the image attached; falls back to just downloading the image if the browser doesn't support file sharing. Pre-named from the list title and current date/time. Items with no quantity set (blank or 0) are left out of the shared image, since only what actually needs picking up is useful there
+- **Share** — renders the list as a PNG image (via `<canvas>`, no external library) and opens the native share sheet (Messages, Mail, AirDrop, etc.) with the image attached; falls back to just downloading the image if the browser doesn't support file sharing. Pre-named from the list title and current date/time. Items with no quantity set (blank or 0) are left out of the shared image, since only what actually needs picking up is useful there. Each included item gets a numbered badge too, numbered 1..N within the image itself (not the underlying list position, since only some items make the cut)
 - Editable, persisted list title, plus generated-date and last-updated timestamps
 
 ## Running locally

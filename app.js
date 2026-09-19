@@ -199,10 +199,10 @@
       emptyRow.style.display = "none";
     }
 
-    visibleItems.forEach(function (item) {
+    visibleItems.forEach(function (item, index) {
       var tr = document.createElement("tr");
       tr.innerHTML =
-        "<td class=\"col-name\"><input type=\"text\" class=\"cell-name\" data-id=\"" + item.id + "\" data-field=\"name\" value=\"" + escapeHtml(item.name) + "\" placeholder=\"Item name\"></td>" +
+        "<td class=\"col-name\"><div class=\"name-cell\"><span class=\"row-badge\">" + (index + 1) + "</span><input type=\"text\" class=\"cell-name\" data-id=\"" + item.id + "\" data-field=\"name\" value=\"" + escapeHtml(item.name) + "\" placeholder=\"Item name\"></div></td>" +
         "<td class=\"col-spec\" data-label=\"Spec\"><input type=\"text\" class=\"cell-spec\" data-id=\"" + item.id + "\" data-field=\"spec\" value=\"" + escapeHtml(item.spec) + "\" placeholder=\"Spec / details\"></td>" +
         "<td class=\"col-comment\" data-label=\"Comment\"><input type=\"text\" class=\"cell-comment\" data-id=\"" + item.id + "\" data-field=\"comment\" value=\"" + escapeHtml(item.comment) + "\" placeholder=\"Add a comment (optional)\"></td>" +
         "<td class=\"col-qty\" data-label=\"Qty\"><div class=\"qty-stepper\">" +
@@ -330,7 +330,8 @@
     bg: "#fffdf8",
     text: "#2b241c",
     muted: "#8a7c66",
-    border: "#e2d7bf"
+    border: "#e2d7bf",
+    badgeBg: "#efe6d2"
   };
 
   // Wraps text to fit maxWidth using ctx's current font, breaking on spaces
@@ -378,6 +379,9 @@
     var PAD_X = 32;
     var PAD_TOP = 36;
     var PAD_BOTTOM = 30;
+    var BADGE_DIAM = 22;
+    var BADGE_GAP = 10;
+    var NAME_X = PAD_X + BADGE_DIAM + BADGE_GAP;
     var contentWidth = SHARE_WIDTH - PAD_X * 2;
 
     var measure = document.createElement("canvas").getContext("2d");
@@ -426,12 +430,15 @@
           qtyWidth = measure.measureText(qtyText).width + 14;
         }
         measure.font = "600 18px " + SHARE_FONT_DISPLAY;
-        var nameLines = wrapText(measure, name, contentWidth - qtyWidth);
+        var nameLines = wrapText(measure, name, contentWidth - BADGE_DIAM - BADGE_GAP - qtyWidth);
 
         nameLines.forEach(function (line, i) {
-          ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
-          if (i === 0 && hasQty) {
-            ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text, align: "right" });
+          ops.push({ type: "text", text: line, x: NAME_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
+          if (i === 0) {
+            ops.push({ type: "badge", cx: PAD_X + BADGE_DIAM / 2, cy: y - 7, radius: BADGE_DIAM / 2, number: index + 1 });
+            if (hasQty) {
+              ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text, align: "right" });
+            }
           }
           y += 24;
         });
@@ -475,6 +482,19 @@
         ctx.moveTo(op.x1, op.y - 7);
         ctx.lineTo(op.x2, op.y - 7);
         ctx.stroke();
+        return;
+      }
+      if (op.type === "badge") {
+        ctx.beginPath();
+        ctx.arc(op.cx, op.cy, op.radius, 0, Math.PI * 2);
+        ctx.fillStyle = SHARE_COLORS.badgeBg;
+        ctx.fill();
+        ctx.font = "600 11px " + SHARE_FONT_DISPLAY;
+        ctx.fillStyle = SHARE_COLORS.muted;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(op.number), op.cx, op.cy + 1);
+        ctx.textBaseline = "alphabetic";
         return;
       }
       ctx.font = op.font;
@@ -635,6 +655,21 @@
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeFabMenu();
+  });
+
+  // ---------- back to top ----------
+  // Separate from the fab-cluster on purpose — a navigation shortcut, not
+  // a list action — so it lives in its own corner and only appears once
+  // there's something to scroll back up to.
+  var backToTopBtn = document.getElementById("backToTopBtn");
+  var BACK_TO_TOP_SHOW_AFTER_PX = 300;
+
+  window.addEventListener("scroll", function () {
+    backToTopBtn.classList.toggle("is-visible", window.scrollY > BACK_TO_TOP_SHOW_AFTER_PX);
+  }, { passive: true });
+
+  backToTopBtn.addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   document.getElementById("addRowBtn").addEventListener("click", addItem);
