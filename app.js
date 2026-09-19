@@ -331,7 +331,8 @@
     text: "#2b241c",
     muted: "#8a7c66",
     border: "#e2d7bf",
-    badgeBg: "#efe6d2"
+    qtyBg: "#2f9e44",
+    qtyText: "#ffffff"
   };
 
   // Wraps text to fit maxWidth using ctx's current font, breaking on spaces
@@ -379,9 +380,8 @@
     var PAD_X = 32;
     var PAD_TOP = 36;
     var PAD_BOTTOM = 30;
-    var BADGE_DIAM = 22;
-    var BADGE_GAP = 10;
-    var NAME_X = PAD_X + BADGE_DIAM + BADGE_GAP;
+    var QTY_BADGE_DIAM = 28;
+    var QTY_BADGE_GAP = 10;
     var contentWidth = SHARE_WIDTH - PAD_X * 2;
 
     var measure = document.createElement("canvas").getContext("2d");
@@ -421,24 +421,21 @@
 
         var name = item.name.trim() || "(unnamed item)";
         var hasQty = Number(item.qty) > 0;
-        var qtyText = hasQty ? "Qty: " + item.qty : "";
+        var qtyWidth = hasQty ? QTY_BADGE_DIAM + QTY_BADGE_GAP : 0;
 
         measure.font = "600 18px " + SHARE_FONT_DISPLAY;
-        var qtyWidth = 0;
-        if (hasQty) {
-          measure.font = "13px " + SHARE_FONT_DISPLAY;
-          qtyWidth = measure.measureText(qtyText).width + 14;
-        }
-        measure.font = "600 18px " + SHARE_FONT_DISPLAY;
-        var nameLines = wrapText(measure, name, contentWidth - BADGE_DIAM - BADGE_GAP - qtyWidth);
+        var nameLines = wrapText(measure, name, contentWidth - qtyWidth);
 
         nameLines.forEach(function (line, i) {
-          ops.push({ type: "text", text: line, x: NAME_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
-          if (i === 0) {
-            ops.push({ type: "badge", cx: PAD_X + BADGE_DIAM / 2, cy: y - 7, radius: BADGE_DIAM / 2, number: index + 1 });
-            if (hasQty) {
-              ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text, align: "right" });
-            }
+          ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
+          if (i === 0 && hasQty) {
+            ops.push({
+              type: "qtyBadge",
+              cx: SHARE_WIDTH - PAD_X - QTY_BADGE_DIAM / 2,
+              cy: y - 7,
+              radius: QTY_BADGE_DIAM / 2,
+              qty: item.qty
+            });
           }
           y += 24;
         });
@@ -484,16 +481,16 @@
         ctx.stroke();
         return;
       }
-      if (op.type === "badge") {
+      if (op.type === "qtyBadge") {
         ctx.beginPath();
         ctx.arc(op.cx, op.cy, op.radius, 0, Math.PI * 2);
-        ctx.fillStyle = SHARE_COLORS.badgeBg;
+        ctx.fillStyle = SHARE_COLORS.qtyBg;
         ctx.fill();
-        ctx.font = "600 11px " + SHARE_FONT_DISPLAY;
-        ctx.fillStyle = SHARE_COLORS.muted;
+        ctx.font = "700 14px " + SHARE_FONT_DISPLAY;
+        ctx.fillStyle = SHARE_COLORS.qtyText;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(String(op.number), op.cx, op.cy + 1);
+        ctx.fillText(String(op.qty), op.cx, op.cy + 1);
         ctx.textBaseline = "alphabetic";
         return;
       }
