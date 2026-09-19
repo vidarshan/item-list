@@ -486,12 +486,20 @@
         ctx.arc(op.cx, op.cy, op.radius, 0, Math.PI * 2);
         ctx.fillStyle = SHARE_COLORS.qtyBg;
         ctx.fill();
+
+        var qtyLabel = String(op.qty);
         ctx.font = "700 14px " + SHARE_FONT_DISPLAY;
         ctx.fillStyle = SHARE_COLORS.qtyText;
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(String(op.qty), op.cx, op.cy + 1);
+        // canvas's "middle" baseline centers on font ascent/descent metrics,
+        // which for a serif display face don't line up with where the glyph
+        // actually sits — measure the glyph's own rendered box instead so
+        // it's centered on what's really drawn, not the font's metrics.
         ctx.textBaseline = "alphabetic";
+        var qtyMetrics = ctx.measureText(qtyLabel);
+        var qtyTextH = qtyMetrics.actualBoundingBoxAscent + qtyMetrics.actualBoundingBoxDescent;
+        var qtyBaselineY = op.cy + qtyTextH / 2 - qtyMetrics.actualBoundingBoxDescent;
+        ctx.fillText(qtyLabel, op.cx, qtyBaselineY);
         return;
       }
       ctx.font = op.font;
