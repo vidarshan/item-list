@@ -323,7 +323,7 @@
   // rule as before: an item needs a quantity set (qty > 0) or a comment to
   // be worth sharing.
 
-  var SHARE_WIDTH = 640;
+  var SHARE_WIDTH = 420; // narrow, receipt-like proportions rather than a document/page width
   var SHARE_SCALE = 2; // retina-ish output resolution
   var SHARE_FONT_DISPLAY = "'Playfair Display', Georgia, 'Times New Roman', serif";
   var SHARE_COLORS = {
