@@ -259,6 +259,14 @@
     persistNow();
   }
 
+  function sortAlphabetically() {
+    items.sort(function (a, b) {
+      return a.name.trim().toLowerCase().localeCompare(b.name.trim().toLowerCase());
+    });
+    render();
+    persistNow();
+  }
+
   function saveAsDefault() {
     if (!confirm("Save the current list as your default? \"Restore\" will bring back this exact version from now on.")) return;
     localStorage.setItem(CUSTOM_DEFAULT_KEY, JSON.stringify(items));
@@ -302,8 +310,7 @@
 
   var SHARE_WIDTH = 640;
   var SHARE_SCALE = 2; // retina-ish output resolution
-  var SHARE_FONT_DISPLAY = "Georgia, 'Times New Roman', serif";
-  var SHARE_FONT_UI = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var SHARE_FONT_DISPLAY = "'Playfair Display', Georgia, 'Times New Roman', serif";
   var SHARE_COLORS = {
     bg: "#fffdf8",
     text: "#2b241c",
@@ -374,14 +381,14 @@
     });
 
     y += 4;
-    measure.font = "13px " + SHARE_FONT_UI;
+    measure.font = "13px " + SHARE_FONT_DISPLAY;
     ops.push({ type: "text", text: dateLabel, x: PAD_X, y: y, font: measure.font, color: SHARE_COLORS.muted });
     y += 26;
 
     var printableItems = items.filter(isPrintable);
 
     if (printableItems.length === 0) {
-      measure.font = "italic 15px " + SHARE_FONT_UI;
+      measure.font = "italic 15px " + SHARE_FONT_DISPLAY;
       ops.push({ type: "text", text: "No items to share.", x: PAD_X, y: y, font: measure.font, color: SHARE_COLORS.muted });
       y += 24;
     } else {
@@ -400,7 +407,7 @@
         measure.font = "600 18px " + SHARE_FONT_DISPLAY;
         var qtyWidth = 0;
         if (hasQty) {
-          measure.font = "13px " + SHARE_FONT_UI;
+          measure.font = "13px " + SHARE_FONT_DISPLAY;
           qtyWidth = measure.measureText(qtyText).width + 14;
         }
         measure.font = "600 18px " + SHARE_FONT_DISPLAY;
@@ -409,23 +416,23 @@
         nameLines.forEach(function (line, i) {
           ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "600 18px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text });
           if (i === 0 && hasQty) {
-            ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_UI, color: SHARE_COLORS.text, align: "right" });
+            ops.push({ type: "text", text: qtyText, x: SHARE_WIDTH - PAD_X, y: y, font: "13px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.text, align: "right" });
           }
           y += 24;
         });
 
         if (item.spec && item.spec.trim()) {
-          measure.font = "13px " + SHARE_FONT_UI;
+          measure.font = "13px " + SHARE_FONT_DISPLAY;
           wrapText(measure, item.spec.trim(), contentWidth).forEach(function (line) {
-            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "13px " + SHARE_FONT_UI, color: SHARE_COLORS.muted });
+            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "13px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.muted });
             y += 19;
           });
         }
 
         if (item.comment && item.comment.trim()) {
-          measure.font = "italic 12.5px " + SHARE_FONT_UI;
+          measure.font = "italic 12.5px " + SHARE_FONT_DISPLAY;
           wrapText(measure, item.comment.trim(), contentWidth).forEach(function (line) {
-            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "italic 12.5px " + SHARE_FONT_UI, color: SHARE_COLORS.muted });
+            ops.push({ type: "text", text: line, x: PAD_X, y: y, font: "italic 12.5px " + SHARE_FONT_DISPLAY, color: SHARE_COLORS.muted });
             y += 18;
           });
         }
@@ -594,6 +601,7 @@
   document.getElementById("clearAllBtn").addEventListener("click", clearAll);
   document.getElementById("restoreDefaultsBtn").addEventListener("click", restoreDefaults);
   document.getElementById("saveDefaultBtn").addEventListener("click", saveAsDefault);
+  document.getElementById("sortBtn").addEventListener("click", sortAlphabetically);
   document.getElementById("shareBtn").addEventListener("click", shareList);
 
   listTitleInput.addEventListener("input", function () {
