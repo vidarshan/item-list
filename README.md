@@ -6,6 +6,7 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 
 - Ships pre-loaded with a default item list (edit `DEFAULT_ITEMS_DATA` in `app.js` to change it)
 - Add / delete items (name, spec, qty, optional comment) directly in an always-editable table — no separate edit/save mode
+- Items must stay distinct: editing a name or spec so it exactly matches another item's name + spec (case-insensitive) reverts that edit with a warning once you leave the field. Two items can still share a name if their spec differs (e.g. "Smart Water" 591ml vs 1L)
 - Live search box filters the list by item name, spec, or comment as you type
 - Changes auto-save as you type (debounced ~500ms), with a small "Saving…/Saved" indicator
 - A single floating "+" button (bottom-right) expands into a menu for Add, Share, Sort A-Z, Set Default, Restore, and Clear Qtys

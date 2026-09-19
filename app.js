@@ -226,6 +226,20 @@
     searchInput.value = "";
   }
 
+  // Two items are duplicates if their name AND spec match, case-insensitive
+  // and trimmed (qty/comment don't factor in) — this lets legitimately
+  // distinct variants like "Smart Water" 591ml vs 1L coexist, and skips the
+  // check entirely for not-yet-named rows so adding several blank items in
+  // a row is never blocked.
+  function findDuplicate(id, name, spec) {
+    name = name.trim().toLowerCase();
+    if (!name) return null;
+    spec = spec.trim().toLowerCase();
+    return items.find(function (i) {
+      return i.id !== id && i.name.trim().toLowerCase() === name && i.spec.trim().toLowerCase() === spec;
+    }) || null;
+  }
+
   function addItem() {
     // clear any active search filter so the new blank item is guaranteed
     // to be visible and focusable, regardless of what was typed
@@ -550,6 +564,31 @@
     var item = items.find(function (i) { return i.id === id; });
     if (!item) return;
     item[field] = input.value;
+    scheduleSave();
+  });
+
+  // Duplicate check (same name + spec) runs on blur rather than on every
+  // keystroke, so nothing gets rejected mid-typing — only once the user
+  // moves on does an offending edit get reverted.
+  itemsBody.addEventListener("focusin", function (e) {
+    var input = e.target.closest('input[data-field="name"], input[data-field="spec"]');
+    if (!input) return;
+    input.dataset.prevValue = input.value;
+  });
+
+  itemsBody.addEventListener("focusout", function (e) {
+    var input = e.target.closest('input[data-field="name"], input[data-field="spec"]');
+    if (!input) return;
+    var id = input.getAttribute("data-id");
+    var item = items.find(function (i) { return i.id === id; });
+    if (!item) return;
+    var dup = findDuplicate(id, item.name, item.spec);
+    if (!dup) return;
+    alert("\"" + item.name.trim() + "\"" + (item.spec.trim() ? " (" + item.spec.trim() + ")" : "") + " already exists in the list. Reverting this change.");
+    var field = input.getAttribute("data-field");
+    var prevValue = input.dataset.prevValue || "";
+    item[field] = prevValue;
+    input.value = prevValue;
     scheduleSave();
   });
 
