@@ -95,11 +95,15 @@
     }
   }
 
+  // Quantities are never carried over here — a saved custom default may
+  // have had quantities filled in when it was captured, but restoring
+  // (or first-loading) a default list should always start with blank
+  // quantities for the user to fill in fresh.
   function getDefaultItems() {
     var custom = loadCustomDefault();
     if (!custom || !custom.length) return factoryDefaultItems();
     return custom.map(function (item) {
-      return { id: uid(), name: item.name || "", spec: item.spec || "", qty: item.qty || "", comment: item.comment || "" };
+      return { id: uid(), name: item.name || "", spec: item.spec || "", qty: "", comment: item.comment || "" };
     });
   }
 
@@ -244,9 +248,8 @@
   }
 
   function clearAll() {
-    if (!confirm("This will permanently delete all items from this browser. Continue?")) return;
-    items = [];
-    clearSearch();
+    if (!confirm("This will reset every item's quantity to blank. Continue?")) return;
+    items.forEach(function (item) { item.qty = ""; });
     render();
     persistNow();
   }

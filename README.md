@@ -8,11 +8,12 @@ A tiny, dependency-free web app for tracking a list of items (name, spec, qty, o
 - Add / delete items (name, spec, qty, optional comment) directly in an always-editable table — no separate edit/save mode
 - Live search box filters the list by item name, spec, or comment as you type
 - Changes auto-save as you type (debounced ~500ms), with a small "Saving…/Saved" indicator
-- A single floating "+" button (bottom-right) expands into a menu for Add, Share, Sort A-Z, Set Default, Restore, and Clear
+- A single floating "+" button (bottom-right) expands into a menu for Add, Share, Sort A-Z, Set Default, Restore, and Clear Qtys
 - **Sort A-Z** — reorders the list alphabetically by item name (case-insensitive). Manual, on demand — the list is never reordered automatically while you're editing
 - **Set Default** — optionally saves your current list (including any edits, additions, or deletions) as your new default, so **Restore** brings back that exact version instead of the original pre-loaded list from then on
-- **Restore** — reverts to your saved default if you've set one, otherwise the original pre-loaded list (asks for confirmation first)
-- Data persists in the browser's `localStorage` until you explicitly hit **Clear**
+- **Restore** — reverts to your saved default if you've set one, otherwise the original pre-loaded list (asks for confirmation first). Quantities always come back blank, even if the saved default had them filled in — only names/specs/comments carry over
+- **Clear Qtys** — resets every item's quantity to blank, keeping the items themselves (names, specs, comments) untouched (asks for confirmation first)
+- Data persists in the browser's `localStorage` until you explicitly clear your browser's site data
 - **Share** — renders the list as a PNG image (via `<canvas>`, no external library) and opens the native share sheet (Messages, Mail, AirDrop, etc.) with the image attached; falls back to just downloading the image if the browser doesn't support file sharing. Pre-named from the list title and current date/time. Items with no quantity set (blank or 0) are left out of the shared image, since only what actually needs picking up is useful there
 - Editable, persisted list title, plus generated-date and last-updated timestamps
 
